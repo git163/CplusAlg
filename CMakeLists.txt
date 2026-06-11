@@ -40,6 +40,11 @@ file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS "src/include/*.h" "src/inclu
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE src src/include ${NLOHMANN_JSON_INCLUDE_DIR})
 
+# 若 pybind11 可用，链接 embed 目标以支持内嵌 Python 解释器
+if(TARGET pybind11::embed)
+    target_link_libraries(${PROJECT_NAME} PRIVATE pybind11::embed)
+endif()
+
 # 启用测试
 option(BUILD_TESTING "Build unit tests" ON)
 if(BUILD_TESTING)
