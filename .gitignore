@@ -1,0 +1,32 @@
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.idea/
+*.swp
+*~
+# 提交 VSCode 共享配置，但忽略用户本地设置
+.vscode/settings.json
+
+# 构建产物
+build/
+build-*/
+out/
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.exe
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# 覆盖率
+*.gcov
+*.gcda
+*.gcno
+coverage/
+*.info

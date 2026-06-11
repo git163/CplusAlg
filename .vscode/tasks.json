@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cmake configure",
+      "type": "shell",
+      "command": "cmake -S . -B build",
+      "problemMatcher": ["$cmake"],
+      "group": "build"
+    },
+    {
+      "label": "cmake build",
+      "type": "shell",
+      "command": "cmake --build build -j",
+      "problemMatcher": ["$cmake-build"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "cmake configure"
+    },
+    {
+      "label": "ctest",
+      "type": "shell",
+      "command": "ctest --test-dir build --output-on-failure",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    }
+  ]
+}
