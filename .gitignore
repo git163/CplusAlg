@@ -30,3 +30,6 @@ Makefile
 *.gcno
 coverage/
 *.info
+
+# 头脑风暴可视化伴侣临时文件
+.superpowers/
