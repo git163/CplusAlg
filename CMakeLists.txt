@@ -16,6 +16,18 @@ endif()
 # 调试信息：所有 build type 都保留 -g，便于事后排查
 add_compile_options(-g)
 
+# 第三方库集成（不修改 third_party/ 源码）
+# pybind11：按需集成；若未找到 Python3 开发环境则跳过
+find_package(Python COMPONENTS Interpreter Development)
+if(Python_FOUND)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/pybind11 ${CMAKE_BINARY_DIR}/third_party/pybind11)
+else()
+    message(WARNING "未找到 Python 开发环境，跳过 pybind11 集成")
+endif()
+
+# nlohmann/json：单头文件库，直接加 include 路径
+set(NLOHMANN_JSON_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/nlohmann_json)
+
 # 源码与头文件
 # 注意：file(GLOB_RECURSE) 是 CMake 反模式——CMake 不会主动感知新增的 .cpp。
 # 缓解：CONFIGURE_DEPENDS 会在 build 时触发 cmake 重跑；如 build 已存在，
@@ -26,7 +38,7 @@ file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS "src/include/*.h" "src/inclu
 
 # 主目标
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE src src/include)
+target_include_directories(${PROJECT_NAME} PRIVATE src src/include ${NLOHMANN_JSON_INCLUDE_DIR})
 
 # 启用测试
 option(BUILD_TESTING "Build unit tests" ON)
