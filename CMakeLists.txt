@@ -31,10 +31,6 @@ set(NLOHMANN_JSON_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/nlohmann_json)
 # spdlog：头文件优先，直接加 include 路径
 set(SPDLOG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
 
-# OpenCV：cv::Mat 适配器必需
-find_package(OpenCV REQUIRED)
-message(STATUS "找到 OpenCV ${OpenCV_VERSION}")
-
 # 源码与头文件
 # 注意：file(GLOB_RECURSE) 是 CMake 反模式——CMake 不会主动感知新增的 .cpp。
 # 缓解：CONFIGURE_DEPENDS 会在 build 时触发 cmake 重跑；如 build 已存在，
@@ -52,10 +48,6 @@ target_compile_definitions(cplus_alg_lib PUBLIC CPLUS_ALG_SOURCE_DIR="${CMAKE_SO
 if(TARGET pybind11::embed)
     target_link_libraries(cplus_alg_lib PUBLIC pybind11::embed)
 endif()
-
-# 链接 OpenCV
-target_link_libraries(cplus_alg_lib PUBLIC ${OpenCV_LIBS})
-target_include_directories(cplus_alg_lib PUBLIC ${OpenCV_INCLUDE_DIRS})
 
 # 主目标
 file(GLOB_RECURSE MAIN_SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/*.cc")

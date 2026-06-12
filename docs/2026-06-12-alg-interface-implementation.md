@@ -49,11 +49,9 @@
   - [x] `src/include/cplus_alg/data_buffer.h`
   - [x] `src/include/cplus_alg/shm_handle.h`
   - [x] `src/include/cplus_alg/alg_interface.h`
-  - [x] `src/include/cplus_alg/data_adapters/cv_mat_adapter.h`
 - [x] 实现 C++ 源文件
   - [x] `src/cplus_alg/shm_buffer.cpp`（RAII 共享内存）
   - [x] `src/cplus_alg/alg_interface.cpp`
-  - [x] `src/cplus_alg/data_adapters/cv_mat_adapter.cpp`
 - [x] 更新 `src/main.cpp` 为模板匹配示例
 - [x] 更新 `CMakeLists.txt` 添加新源文件和 OpenCV 检测
 - [x] 编写测试
@@ -77,7 +75,7 @@
 
 | 风险 | 对策 |
 |---|---|
-| OpenCV 未安装导致构建失败 | CMake 中 OpenCV 设为 REQUIRED，未安装时直接配置失败 |
+| Python cv2 未安装 | Python 测试跳过，文档中说明依赖 |
 | `posix_ipc` 未安装 | Python 测试跳过，文档中说明依赖 |
 | 共享内存权限不足 | 使用 `/dev/shm/` 默认路径，测试使用当前用户权限 |
 | GIL / 多线程问题 | pilot 阶段不引入多线程 |

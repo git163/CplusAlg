@@ -208,23 +208,7 @@ auto result = cplus_alg::call("template_match", image, params);
 - `shm_transmit` 只接受 `data_buffer`（由 C++ 侧创建 shm），不接受已存在的 `shm_handle`。
 - 调用方传错类型时，在编译期即可暴露。
 
-### 5.4 适配器
-
-```cpp
-// src/include/cplus_alg/data_adapters/cv_mat_adapter.h
-#include "cplus_alg/data_buffer.h"
-#include <opencv2/core.hpp>
-
-namespace cplus_alg {
-
-data_buffer from_cv_mat(const cv::Mat& mat);
-
-cv::Mat to_cv_mat(const data_buffer& buf);
-
-} // namespace cplus_alg
-```
-
-### 5.5 强类型封装层（第二阶段）
+### 5.4 强类型封装层（第二阶段）
 
 ```cpp
 // src/include/cplus_alg/template_match.h
@@ -263,7 +247,7 @@ match_result template_match(
 
 ### 6.1 模板匹配（大图走 shm）
 
-1. C++ 加载 `cv::Mat image`。
+1. C++ 构造 `data_buffer`（如 `std::vector<uint8_t>` 的视图）。
 2. 判断大小：超过阈值（默认 1MB）则创建共享内存。
 3. `alg::call("template_match", image_handle_or_buffer, params)`。
 4. Python `core.registry` 路由到 `template_match.run`。
@@ -456,7 +440,7 @@ def dispatch(module_name: str, input_data, params: dict) -> dict:
 - Python 开发库
 - pybind11（已集成到 `third_party/`）
 - nlohmann/json（已集成到 `third_party/`）
-- OpenCV C++（`cv::Mat` 适配器必需）
+- spdlog（已集成到 `third_party/`）
 
 ### 11.2 Python 依赖
 
@@ -476,7 +460,7 @@ pip install opencv-python numpy scipy posix_ipc
 
 1. **跨平台共享内存**：`posix_ipc` 在 Linux/macOS 可用，Windows 需替换方案。
 2. **GIL 开销**：高频调用时 Python GIL 可能成为瓶颈。
-3. **OpenCV 版本差异**：C++ `cv::Mat` 与 Python `cv2` 的 dtype/channel 约定需对齐。
+3. **OpenCV 版本差异**：Python `cv2` 的 dtype/channel 约定需与 C++ 侧 `data_buffer` 对齐。
 
 ### 12.2 性能优化路径
 
