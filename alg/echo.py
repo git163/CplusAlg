@@ -2,7 +2,10 @@
 
 import numpy as np
 
+from alg.core.decorators import algorithm
 
+
+@algorithm("echo")
 def run(input_data, params):
     """返回输入数据信息和部分参数。
 

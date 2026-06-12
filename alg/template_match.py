@@ -18,6 +18,10 @@ def _method_from_str(method: str) -> int:
     return mapping[method]
 
 
+from alg.core.decorators import algorithm
+
+
+@algorithm("template_match")
 def run(input_data, params: dict) -> dict:
     """模板匹配算法入口。
 

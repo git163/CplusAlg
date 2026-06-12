@@ -34,10 +34,12 @@ coverage/
 *.info
 
 # 日志
-log/
+log/*
+!log/.gitkeep
 
 # 运行时生成的图像
-curve_fit.png
+data/images/*
+!data/images/.gitkeep
 *.png
 
 .superpowers/

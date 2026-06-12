@@ -48,29 +48,11 @@ set(NLOHMANN_JSON_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/nlohmann_json)
 # spdlog：头文件优先，直接加 include 路径
 set(SPDLOG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
 
-# 源码与头文件
-# 注意：file(GLOB_RECURSE) 是 CMake 反模式——CMake 不会主动感知新增的 .cpp。
-# 缓解：CONFIGURE_DEPENDS 会在 build 时触发 cmake 重跑；如 build 已存在，
-#      新增 .cpp 后请先 `cmake --build build --target rebuild_cache`。
-# 项目成长后推荐：每个模块一个 CMakeLists.txt，用 add_subdirectory() 替代 GLOB。
-file(GLOB_RECURSE CPLUS_ALG_SOURCES CONFIGURE_DEPENDS "src/cplus_alg/*.cpp" "src/cplus_alg/*.cc")
-file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS "src/include/*.h" "src/include/*.hpp")
-
-# 核心库（供主程序和测试共享）
-add_library(cplus_alg_lib STATIC ${CPLUS_ALG_SOURCES})
-target_include_directories(cplus_alg_lib PUBLIC src src/include ${NLOHMANN_JSON_INCLUDE_DIR} ${SPDLOG_INCLUDE_DIR})
-target_compile_definitions(cplus_alg_lib PUBLIC CPLUS_ALG_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
-
-# 若 pybind11 可用，链接 embed 目标以支持内嵌 Python 解释器
-if(TARGET pybind11::embed)
-    target_link_libraries(cplus_alg_lib PUBLIC pybind11::embed)
-endif()
+# 核心库：按模块拆分到 src/cplus_alg/<模块>/CMakeLists.txt
+add_subdirectory(src/cplus_alg)
 
 # 主目标
-file(GLOB_RECURSE MAIN_SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/*.cc")
-# 排除已加入库的 src/cplus_alg/*
-list(FILTER MAIN_SOURCES EXCLUDE REGEX "src/cplus_alg/.*")
-add_executable(${PROJECT_NAME} ${MAIN_SOURCES})
+add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE cplus_alg_lib)
 
 # 启用测试

@@ -14,6 +14,10 @@ def _erf_model(x, a, b, c, d):
     return a * erf(b * (x - c)) + d
 
 
+from alg.core.decorators import algorithm
+
+
+@algorithm("curve_fit")
 def run(input_data, params):
     """拟合 erf 曲线并保存图像。
 

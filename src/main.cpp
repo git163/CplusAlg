@@ -72,7 +72,7 @@ static bool run_curve_fit_example() {
     params.set("x", x)
           .set("y", y)
           .set("p0", std::vector<double>{1.0, 1.0, 0.0, 0.0})
-          .set("plot_path", std::string("curve_fit.png"));
+          .set("plot_path", std::string("data/images/curve_fit.png"));
 
     auto result = alg::call("curve_fit", alg::data_buffer{}, params);
 

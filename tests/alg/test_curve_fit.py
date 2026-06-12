@@ -13,7 +13,7 @@ def test_curve_fit_erf():
         "x": x.tolist(),
         "y": y.tolist(),
         "p0": [1.0, 1.0, 0.0, 0.0],
-        "plot_path": "test_curve_fit.png",
+        "plot_path": "data/images/test_curve_fit.png",
     }
 
     result = curve_fit.run(None, params)
@@ -25,7 +25,7 @@ def test_curve_fit_erf():
     assert abs(fitted[1] - 1.0) < 0.1  # b
     assert abs(fitted[2]) < 0.1       # c
     assert abs(fitted[3]) < 0.1       # d
-    assert result["data"]["plot_path"] == "test_curve_fit.png"
+    assert result["data"]["plot_path"] == "data/images/test_curve_fit.png"
 
 
 def test_curve_fit_missing_data():
