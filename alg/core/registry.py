@@ -5,6 +5,7 @@ import importlib
 _ALGORITHMS = {
     "template_match": "alg.template_match",
     "curve_fit": "alg.curve_fit",
+    "echo": "alg.echo",
 }
 
 
