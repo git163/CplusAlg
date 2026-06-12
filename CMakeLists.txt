@@ -20,6 +20,23 @@ add_compile_options(-g)
 # pybind11：按需集成；若未找到 Python3 开发环境则跳过
 find_package(Python COMPONENTS Interpreter Development)
 if(Python_FOUND)
+    # 校验 Python 环境包含运行时必需的包
+    execute_process(
+        COMMAND ${Python_EXECUTABLE} -c "import numpy; numpy.dtype"
+        RESULT_VARIABLE NUMPY_IMPORT_RESULT
+        OUTPUT_QUIET ERROR_QUIET)
+    if(NOT NUMPY_IMPORT_RESULT EQUAL 0)
+        message(FATAL_ERROR "找到的 Python ${Python_EXECUTABLE} 未安装可用的 numpy，请运行: ${Python_EXECUTABLE} -m pip install numpy")
+    endif()
+
+    execute_process(
+        COMMAND ${Python_EXECUTABLE} -c "import cv2"
+        RESULT_VARIABLE CV2_IMPORT_RESULT
+        OUTPUT_QUIET ERROR_QUIET)
+    if(NOT CV2_IMPORT_RESULT EQUAL 0)
+        message(WARNING "找到的 Python ${Python_EXECUTABLE} 未安装 cv2，模板匹配等算法将无法运行")
+    endif()
+
     add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/pybind11 ${CMAKE_BINARY_DIR}/third_party/pybind11)
 else()
     message(WARNING "未找到 Python 开发环境，跳过 pybind11 集成")
