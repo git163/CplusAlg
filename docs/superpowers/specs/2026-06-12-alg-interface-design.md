@@ -153,32 +153,53 @@ inline constexpr shm_transmit_t shm_transmit{};
 
 namespace cplus_alg {
 
+// 调用参数容器，支持标量 JSON 和 data_buffer 缓冲区
+class call_params {
+public:
+    call_params() = default;
+
+    template <typename T>
+    call_params& set(const std::string& key, T&& value);
+
+    call_params& set_buffer(const std::string& key, const data_buffer& buf);
+};
+
 // 1. 自动按大小选择传输方式
 nlohmann::json call(
     const std::string& module_name,
     const data_or_handle& input,
-    const nlohmann::json& params = {});
+    const call_params& params = {});
 
 // 2. 强制直接传内存
 nlohmann::json call(
     direct_transmit_t,
     const std::string& module_name,
     const data_buffer& input,
-    const nlohmann::json& params = {});
+    const call_params& params = {});
 
 // 3. 强制走共享内存
 nlohmann::json call(
     shm_transmit_t,
     const std::string& module_name,
     const data_buffer& input,
-    const nlohmann::json& params = {});
+    const call_params& params = {});
 
 // 4. 无数据输入，纯参数调用
 nlohmann::json call(
     const std::string& module_name,
-    const nlohmann::json& params = {});
+    const call_params& params = {});
 
 } // namespace cplus_alg
+```
+
+使用示例：
+
+```cpp
+cplus_alg::call_params params;
+params.set("method", "ccorr_normed")
+      .set_buffer("template", templ_buf);
+
+auto result = cplus_alg::call("template_match", image, params);
 ```
 
 ### 5.3 tag dispatch 说明

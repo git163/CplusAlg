@@ -1,47 +1,44 @@
-// src/main.cpp — pybind11 调用 matplotlib 绘制示例图
+#include "cplus_alg/alg_interface.h"
 
 #include <iostream>
-#include <stdexcept>
 
-#include <pybind11/embed.h>
-#include <pybind11/stl.h>
+#ifdef CPLUS_ALG_HAS_OPENCV
+#include "cplus_alg/data_adapters/cv_mat_adapter.h"
+#include <opencv2/opencv.hpp>
+#endif
 
-namespace py = pybind11;
+namespace alg = cplus_alg;
 
 int main(int /*argc*/, char* /*argv*/[]) {
     try {
-        // 启动 Python 解释器
-        py::scoped_interpreter guard{};
+#ifdef CPLUS_ALG_HAS_OPENCV
+        // 构造合成图像：100x100 灰度图，在 (20, 30) 处放一个 10x10 的白色方块
+        cv::Mat image(100, 100, CV_8UC1, cv::Scalar(0));
+        cv::rectangle(image, cv::Point(20, 30), cv::Point(29, 39), cv::Scalar(255), cv::FILLED);
 
-        py::module_ sys = py::module_::import("sys");
-        py::print("Python version:", sys.attr("version"));
+        // 模板：10x10 白色方块
+        cv::Mat templ(10, 10, CV_8UC1, cv::Scalar(255));
 
-        // 使用 Agg 后端，避免在无图形界面环境下报错
-        py::module_ mpl = py::module_::import("matplotlib");
-        mpl.attr("use")("Agg");
+        alg::call_params params;
+        params.set("method", std::string("ccorr_normed"))
+              .set_buffer("template", alg::from_cv_mat(templ));
 
-        // 导入 matplotlib.pyplot 并绘制简单曲线
-        py::module_ plt = py::module_::import("matplotlib.pyplot");
+        auto result = alg::call("template_match", alg::from_cv_mat(image), params);
 
-        plt.attr("figure")(py::arg("figsize") = py::make_tuple(6, 4));
-        plt.attr("plot")(py::make_tuple(0, 1, 2, 3, 4),
-                         py::make_tuple(0, 1, 4, 9, 16),
-                         py::arg("label") = "y = x^2",
-                         py::arg("marker") = "o");
-        plt.attr("title")("CplusAlg pybind11 demo");
-        plt.attr("xlabel")("x");
-        plt.attr("ylabel")("y");
-        plt.attr("legend")();
-        plt.attr("grid")(true);
-        plt.attr("savefig")("demo_plot.png", py::arg("dpi") = 150);
-        plt.attr("close")();
-
-        std::cout << "demo_plot.png 已生成" << std::endl;
-    } catch (const py::error_already_set& e) {
-        std::cerr << "Python 调用失败: " << e.what() << std::endl;
+        if (result["success"]) {
+            std::cout << "匹配结果: x=" << result["data"]["x"]
+                      << ", y=" << result["data"]["y"]
+                      << ", score=" << result["data"]["score"] << std::endl;
+        } else {
+            std::cerr << "调用失败: " << result["error"] << std::endl;
+            return 1;
+        }
+#else
+        std::cerr << "当前构建未启用 OpenCV，无法运行模板匹配示例" << std::endl;
         return 1;
+#endif
     } catch (const std::exception& e) {
-        std::cerr << "错误: " << e.what() << std::endl;
+        std::cerr << "异常: " << e.what() << std::endl;
         return 1;
     }
 

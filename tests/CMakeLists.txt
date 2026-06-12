@@ -1,6 +1,6 @@
 # tests/CMakeLists.txt — 单元测试入口
 # 使用 third_party/googletest，不修改第三方源码。
-# 随项目成长，推荐拆成 tests/<module>/CMakeLists.txt 各模块独立。
+# 随项目成长，推荐拆成 tests/<模块>/CMakeLists.txt 各模块独立。
 
 # 避免安装 gtest 到系统
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
@@ -16,7 +16,7 @@ include(GoogleTest)
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS "Test*.cpp")
 
 add_executable(unit_tests ${TEST_SOURCES})
-target_link_libraries(unit_tests PRIVATE GTest::gtest_main)
+target_link_libraries(unit_tests PRIVATE GTest::gtest_main cplus_alg_lib)
 target_include_directories(unit_tests PRIVATE
     ../src/include
     ${CMAKE_SOURCE_DIR}/third_party/nlohmann_json
