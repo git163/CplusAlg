@@ -235,7 +235,7 @@ PE_Speedup_HeavyCompute,pure_compute,1,4023,248,1.00,1.000,0,0,0,ok
 ### 8.1 `scripts/run_threading_perf.sh`
 
 - 自动构建（如果二进制不存在）
-- `--quick` 模式：线程扫描 `{1, 4, 16}` + 重复 1 次 + 跳过真实 Python，约 1-3 分钟
+- `--quick` 模式：线程扫描 `{1, 4, 16}` + 重复 1 次 + 真实 Python 用例只跑 1 线程，约 1-3 分钟
 - 默认全量：约 10-30 分钟
 - `--csv` 输出到文件
 
