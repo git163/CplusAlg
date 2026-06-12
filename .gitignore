@@ -36,5 +36,8 @@ coverage/
 # 日志
 log/
 
-# 头脑风暴可视化伴侣临时文件
+# 运行时生成的图像
+curve_fit.png
+*.png
+
 .superpowers/
