@@ -1,7 +1,7 @@
 #include "cplus_alg/alg_interface.h"
 #include "cplus_alg/data_adapters/cv_mat_adapter.h"
+#include "cplus_alg/logger.h"
 
-#include <iostream>
 #include <opencv2/opencv.hpp>
 
 namespace alg = cplus_alg;
@@ -22,15 +22,16 @@ int main(int /*argc*/, char* /*argv*/[]) {
         auto result = alg::call("template_match", alg::from_cv_mat(image), params);
 
         if (result["success"]) {
-            std::cout << "匹配结果: x=" << result["data"]["x"]
-                      << ", y=" << result["data"]["y"]
-                      << ", score=" << result["data"]["score"] << std::endl;
+            alg::default_logger()->info("template match result: x={}, y={}, score={}",
+                result["data"]["x"].get<int>(),
+                result["data"]["y"].get<int>(),
+                result["data"]["score"].get<double>());
         } else {
-            std::cerr << "调用失败: " << result["error"] << std::endl;
+            alg::default_logger()->error("template match failed: {}", std::string(result["error"]));
             return 1;
         }
     } catch (const std::exception& e) {
-        std::cerr << "异常: " << e.what() << std::endl;
+        alg::default_logger()->error("exception: {}", e.what());
         return 1;
     }
 
