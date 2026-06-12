@@ -3,6 +3,7 @@
 #include "cplus_alg/alg_interface.h"
 #include "cplus_alg/logger.h"
 #include "cplus_alg/python/type_converter.h"
+#include "interpreter/PyInterpreter.h"
 
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
@@ -40,7 +41,6 @@ public:
         }
         // 退出阶段不要再写日志，spdlog 的 sink 等静态对象可能已处于析构过程中。
         registry_ = py::object();
-        guard_.reset();
         initialized_ = false;
     }
 
@@ -51,16 +51,17 @@ private:
         if (initialized_) return;
 
         CPLUS_ALG_LOG_DEBUG("initializing embedded python interpreter");
-        guard_ = std::make_unique<py::scoped_interpreter>();
+        auto& interp = PyInterpreter::Instance();
+        if (!interp.Initialize()) {
+            throw std::runtime_error("failed to initialize embedded python interpreter via PyInterpreter");
+        }
         try {
             add_alg_path();
             registry_ = py::module_::import("alg.core.registry");
             initialized_ = true;
             CPLUS_ALG_LOG_DEBUG("python interpreter initialized, alg.core.registry loaded");
         } catch (...) {
-            // 导入失败时释放解释器，避免后续调用触发 "interpreter already running"
-            CPLUS_ALG_LOG_ERROR("failed to initialize python runtime, releasing interpreter");
-            guard_.reset();
+            CPLUS_ALG_LOG_ERROR("failed to initialize python runtime");
             registry_ = py::object();
             throw;
         }
@@ -112,7 +113,6 @@ private:
     }
 
     bool initialized_ = false;
-    std::unique_ptr<py::scoped_interpreter> guard_;
     py::object registry_;
 };
 
@@ -164,6 +164,10 @@ backend::dispatch_result python_backend::dispatch(
 
 bool python_backend::available() const {
     try {
+        auto& interp = PyInterpreter::Instance();
+        if (!interp.IsInitialized()) {
+            return false;
+        }
         auto& rt = python_runtime::instance();
         rt.registry();
         return true;

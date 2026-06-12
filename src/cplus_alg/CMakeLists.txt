@@ -6,6 +6,8 @@ set(CPLUS_ALG_LIB_SOURCES
 add_subdirectory(backend)
 add_subdirectory(transport)
 add_subdirectory(python)
+add_subdirectory(interpreter)
+add_subdirectory(threading)
 
 add_library(cplus_alg_lib STATIC ${CPLUS_ALG_LIB_SOURCES})
 
