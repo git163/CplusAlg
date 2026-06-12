@@ -3,6 +3,7 @@
 
 PyThreadPool::PyThreadPool(size_t nThreads, size_t nMaxQueueSize)
     : m_nMaxQueueSize(nMaxQueueSize) {
+    assert(nThreads > 0 && "nThreads must be positive");
     for (size_t i = 0; i < nThreads; ++i) {
         m_vecWorkers.emplace_back([this, i]() {
             while (true) {
@@ -19,7 +20,12 @@ PyThreadPool::PyThreadPool(size_t nThreads, size_t nMaxQueueSize)
                 }
                 m_cvProduce.notify_one();
                 GilScopedAcquire gil;
-                task();
+                try {
+                    task();
+                } catch (const std::exception& e) {
+                    spdlog::error("PyThreadPool worker {} task failed: {}", i,
+                                  e.what());
+                }
                 {
                     std::lock_guard<std::mutex> lock(m_mutex);
                     --m_nPendingTasks;

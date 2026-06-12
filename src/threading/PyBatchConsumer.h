@@ -42,6 +42,8 @@ public:
           m_nPendingTasks(0),
           m_nProcessedCount(0),
           m_nProducedCount(0) {
+        assert(nConsumers > 0 && "nConsumers must be positive");
+        assert(nBatchSize > 0 && "nBatchSize must be positive");
         for (size_t i = 0; i < nConsumers; ++i) {
             m_vecConsumers.emplace_back([this, i]() {
                 ConsumerLoop(i);
@@ -286,7 +288,7 @@ private:
     size_t m_nBatchSize;
     std::chrono::milliseconds m_timeout;
     size_t m_nMaxQueueSize;
-    bool m_bStop;
+    std::atomic<bool> m_bStop{false};
     bool m_bFlushRequested;
     std::atomic<size_t> m_nPendingTasks;
     std::atomic<size_t> m_nProcessedCount;

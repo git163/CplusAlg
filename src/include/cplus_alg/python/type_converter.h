@@ -20,6 +20,9 @@ pybind11::dict params_to_py(
     const nlohmann::json& json_params,
     const std::unordered_map<std::string, data_buffer>& buffer_params);
 
+// 将 nlohmann::json 转换为 Python 对象
+pybind11::object json_to_py(const nlohmann::json& j);
+
 // 将 Python 对象转换回 nlohmann::json
 nlohmann::json py_to_json(const pybind11::handle& obj);
 

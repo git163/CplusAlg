@@ -48,6 +48,29 @@ set(NLOHMANN_JSON_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/nlohmann_json)
 # spdlog：头文件优先，直接加 include 路径
 set(SPDLOG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
 
+# Sanitizer 选项
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
+option(ENABLE_TSAN "Enable ThreadSanitizer" OFF)
+
+if(ENABLE_ASAN)
+  message(STATUS "AddressSanitizer enabled")
+  add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=address)
+endif()
+
+if(ENABLE_UBSAN)
+  message(STATUS "UndefinedBehaviorSanitizer enabled")
+  add_compile_options(-fsanitize=undefined -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=undefined)
+endif()
+
+if(ENABLE_TSAN)
+  message(STATUS "ThreadSanitizer enabled")
+  add_compile_options(-fsanitize=thread -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=thread)
+endif()
+
 # 核心库：按模块拆分到 src/cplus_alg/<模块>/CMakeLists.txt
 add_subdirectory(src/cplus_alg)
 

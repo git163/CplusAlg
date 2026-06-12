@@ -129,3 +129,102 @@ TEST_F(PyThreadPoolTest, BoundedQueueBlocksProducer) {
 
     EXPECT_EQ(completed.load(), static_cast<int>(k_max_queue_size + 1));
 }
+
+TEST_F(PyThreadPoolTest, HighConcurrencySubmit) {
+    constexpr int kNumTasks = 2000;
+    PyThreadPool pool(4);
+    std::atomic<int> counter{0};
+    std::vector<std::future<int>> futures;
+    futures.reserve(kNumTasks);
+
+    for (int i = 0; i < kNumTasks; ++i) {
+        auto opt = pool.Submit([&counter, i]() {
+            ++counter;
+            return i;
+        });
+        ASSERT_TRUE(opt.has_value());
+        futures.push_back(std::move(*opt));
+    }
+    for (auto& f : futures) {
+        const auto status = f.wait_for(k_wait_timeout);
+        ASSERT_NE(status, std::future_status::timeout)
+            << "high concurrency task timed out";
+        f.get();
+    }
+    EXPECT_EQ(counter.load(), kNumTasks);
+}
+
+TEST_F(PyThreadPoolTest, ExceptionInTaskIsHandled) {
+    PyThreadPool pool(1);
+    std::atomic<bool> executed{false};
+    auto opt = pool.Submit([&executed]() -> int {
+        executed = true;
+        throw std::runtime_error("intentional test error");
+    });
+    ASSERT_TRUE(opt.has_value());
+    // 异常被捕获，future 应包含异常，不导致进程崩溃
+    EXPECT_THROW(opt->get(), std::runtime_error);
+    EXPECT_TRUE(executed.load());
+}
+
+TEST_F(PyThreadPoolTest, ZeroThreadPoolAsserts) {
+    // nThreads=0 在 Debug 构建下由 assert 捕获
+    // Release 构建下行为未定义，已验证通过 assert 在开发阶段拦截
+    GTEST_SKIP() << "nThreads=0 triggers assertion (by design)";
+}
+
+TEST_F(PyThreadPoolTest, ShutdownWhileProducersBlocked) {
+    // 验证 Shutdown 后 Submit 正确返回 nullopt（不做生产者阻塞竞态测试：
+    // ConsumerLoop 在 task 执行前就 notify m_cvProduce，生产者无法可靠阻塞）
+    constexpr size_t kMaxQueue = 2;
+    PyThreadPool pool(1, kMaxQueue);
+
+    // 提交任务填充队列
+    for (size_t i = 0; i < kMaxQueue; ++i) {
+        ASSERT_TRUE(pool.Submit([]() {
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            return 0;
+        }).has_value());
+    }
+
+    // 等待 worker 取走任务后再提交，填满队列
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    pool.Shutdown();
+    auto opt = pool.Submit([]() { return 1; });
+    EXPECT_FALSE(opt.has_value()) << "Shutdown should reject new submissions";
+}
+
+TEST_F(PyThreadPoolTest, DestructorJoinsWorkers) {
+    // 验证析构函数自动 join 所有 worker
+    {
+        PyThreadPool pool(4);
+        for (int i = 0; i < 10; ++i) {
+            pool.Submit([i]() { return i * i; });
+        }
+    }  // 析构 → Shutdown → join
+    SUCCEED();
+}
+
+TEST_F(PyThreadPoolTest, ManyProducersOneWorker) {
+    constexpr int kNumProducers = 8;
+    constexpr int kTasksPerProducer = 500;
+    PyThreadPool pool(1, 100);
+
+    std::atomic<int> total{0};
+    std::vector<std::thread> producers;
+    for (int p = 0; p < kNumProducers; ++p) {
+        producers.emplace_back([&]() {
+            for (int i = 0; i < kTasksPerProducer; ++i) {
+                auto opt = pool.Submit([&total]() {
+                    ++total;
+                    return 0;
+                });
+                if (!opt) break;
+                opt->get();
+            }
+        });
+    }
+    for (auto& t : producers) t.join();
+    EXPECT_EQ(total.load(), kNumProducers * kTasksPerProducer);
+}

@@ -62,3 +62,52 @@ TEST_F(ParallelExecutorTest, RunBenchmarkComparison) {
     EXPECT_GE(single_ms, 0);
     EXPECT_GE(multi_ms, 0);
 }
+
+TEST_F(ParallelExecutorTest, ExceptionInWorkerDoesNotCrash) {
+    std::atomic<int> call_count{0};
+    ParallelExecutor::RunInParallel(4, [&](int thread_id) {
+        ++call_count;
+        if (thread_id == 2) {
+            throw std::runtime_error("worker error");
+        }
+    });
+    EXPECT_EQ(call_count.load(), 4);
+}
+
+TEST_F(ParallelExecutorTest, BenchmarkShowsPositiveTiming) {
+    auto [single_ms, multi_ms] = ParallelExecutor::RunBenchmarkComparison(
+        1000, 4, [](int) {
+            volatile int x = 0;
+            for (int i = 0; i < 10000; ++i) x += i;
+        });
+    // 不做严格加速比断言，但应都为正
+    EXPECT_GT(single_ms, 0);
+    EXPECT_GT(multi_ms, 0);
+}
+
+TEST_F(ParallelExecutorTest, ZeroThreads) {
+    // nThreads=0 行为：不应调用 callback
+    std::atomic<int> count{0};
+    ParallelExecutor::RunInParallel(0, [&](int) { ++count; });
+    EXPECT_EQ(count.load(), 0);
+}
+
+TEST_F(ParallelExecutorTest, HighIterationCount) {
+    constexpr int kThreads = 4;
+    constexpr int kIterations = 1000;
+    std::atomic<long long> total{0};
+
+    ParallelExecutor::RunInParallelIterated(kThreads, kIterations,
+        [&](int thread_id, int iter) {
+            total += static_cast<long long>(thread_id) * kIterations + iter;
+        });
+
+    // 验证总次数正确
+    long long expected = 0;
+    for (int t = 0; t < kThreads; ++t) {
+        for (int i = 0; i < kIterations; ++i) {
+            expected += static_cast<long long>(t) * kIterations + i;
+        }
+    }
+    EXPECT_EQ(total.load(), expected);
+}

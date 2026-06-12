@@ -75,6 +75,8 @@ py::dict shm_handle_to_py_input(const shm_handle& handle) {
     return result;
 }
 
+} // namespace
+
 py::object json_to_py(const nlohmann::json& j) {
     if (j.is_null()) {
         return py::none();
@@ -110,8 +112,6 @@ py::object json_to_py(const nlohmann::json& j) {
     }
     return py::str(j.dump());
 }
-
-} // namespace
 
 py::object input_to_py(const data_or_handle& input) {
     return std::visit(

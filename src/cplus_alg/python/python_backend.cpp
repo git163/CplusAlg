@@ -10,6 +10,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 
 namespace py = pybind11;
@@ -31,6 +32,8 @@ public:
 
     py::object registry() {
         ensure_initialized();
+        // 确保 GIL 被持有：py::object 拷贝涉及引用计数，需要 GIL
+        py::gil_scoped_acquire gil;
         return registry_;
     }
 
@@ -48,6 +51,7 @@ private:
     python_runtime() = default;
 
     void ensure_initialized() {
+        std::lock_guard<std::mutex> lock(init_mutex_);
         if (initialized_) {
             if (!PyInterpreter::Instance().IsInitialized()) {
                 // 解释器被外部 Finalize，重置自身状态以便后续重新初始化
@@ -120,6 +124,7 @@ private:
         sys.attr("path").attr("append")(std::filesystem::current_path().string());
     }
 
+    std::mutex init_mutex_;
     bool initialized_ = false;
     py::object registry_;
 };
@@ -176,6 +181,8 @@ bool python_backend::available() const {
         if (!interp.IsInitialized()) {
             return false;
         }
+        // 确保 GIL 被持有：registry() 内部访问 Python 对象
+        py::gil_scoped_acquire gil;
         auto& rt = python_runtime::instance();
         rt.registry();
         return true;

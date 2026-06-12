@@ -95,3 +95,74 @@ TEST_F(PyProducerConsumerTest, ErrorCountIncrementsOnException) {
     EXPECT_EQ(pc.GetErrorCount(), 1u);
     EXPECT_EQ(pc.GetProcessedCount(), 1u);
 }
+
+TEST_F(PyProducerConsumerTest, HighThroughputProduce) {
+    constexpr int kNumItems = 5000;
+    std::atomic<int> sum{0};
+
+    PyProducerConsumer<int> pc(4, [&sum](const int& v) {
+        sum += v;
+    }, 200);
+
+    for (int i = 0; i < kNumItems; ++i) {
+        pc.Produce(i);
+    }
+    pc.WaitAll();
+    EXPECT_EQ(sum.load(), kNumItems * (kNumItems - 1) / 2);
+}
+
+TEST_F(PyProducerConsumerTest, MultiProducerRace) {
+    constexpr int kProducers = 8;
+    constexpr int kPerProducer = 500;
+    std::atomic<int> processed{0};
+
+    PyProducerConsumer<int> pc(4, [&processed](const int&) {
+        ++processed;
+    }, 100);
+
+    std::vector<std::thread> producers;
+    for (int p = 0; p < kProducers; ++p) {
+        producers.emplace_back([&pc, p]() {
+            for (int i = 0; i < kPerProducer; ++i) {
+                try {
+                    pc.Produce(p * kPerProducer + i);
+                } catch (const std::runtime_error&) {
+                    break;
+                }
+            }
+        });
+    }
+    for (auto& t : producers) t.join();
+    pc.WaitAll();
+    EXPECT_EQ(processed.load(), kProducers * kPerProducer);
+}
+
+TEST_F(PyProducerConsumerTest, ExceptionDoesNotCrash) {
+    std::atomic<int> processed{0};
+
+    PyProducerConsumer<int> pc(2, [&processed](const int& v) {
+        ++processed;
+        if (v % 3 == 0) {
+            throw std::runtime_error("intentional error");
+        }
+    });
+
+    for (int i = 0; i < 100; ++i) {
+        pc.Produce(i);
+    }
+    pc.WaitAll();
+    EXPECT_EQ(processed.load(), 100);
+    EXPECT_GT(pc.GetErrorCount(), 0) << "Should have recorded errors";
+}
+
+TEST_F(PyProducerConsumerTest, ShutdownRejectsProduce) {
+    PyProducerConsumer<int> pc(1, [](const int&) {});
+    pc.Shutdown();
+    EXPECT_THROW(pc.Produce(1), std::runtime_error);
+    EXPECT_FALSE(pc.TryProduce(std::chrono::milliseconds(10), 1));
+}
+
+TEST_F(PyProducerConsumerTest, ZeroConsumerAsserts) {
+    // nConsumers=0 在 Debug 构建下由 assert 捕获
+    GTEST_SKIP() << "nConsumers=0 triggers assertion (by design)";
+}

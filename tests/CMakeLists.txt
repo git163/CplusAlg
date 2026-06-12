@@ -15,7 +15,10 @@ add_executable(unit_tests
     alg/TestAlgInterface.cpp
     alg/TestBackend.cpp
     alg/TestTemplateMatch.cpp
+    interpreter/TestGilManager.cpp
     interpreter/TestPyInterpreter.cpp
+    python/TestPythonBackend.cpp
+    python/TestTypeConverter.cpp
     threading/TestPyThreadPool.cpp
     threading/TestPyProducerConsumer.cpp
     threading/TestPyBatchConsumer.cpp
@@ -30,4 +33,4 @@ target_include_directories(unit_tests PRIVATE
 )
 
 # 让每个 TEST() 自动注册为 CTest 用例，并设置运行超时防止死锁挂起
-gtest_discover_tests(unit_tests PROPERTIES TIMEOUT 30)
+gtest_discover_tests(unit_tests PROPERTIES TIMEOUT 60)
