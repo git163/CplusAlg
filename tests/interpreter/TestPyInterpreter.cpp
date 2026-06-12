@@ -1,6 +1,7 @@
 // tests/interpreter/TestPyInterpreter.cpp — PyInterpreter 冒烟/单元测试（含 sys.path 去重验证）
 
 #include "interpreter/PyInterpreter.h"
+#include "cplus_alg/python/python_backend.h"
 
 #include <pybind11/embed.h>
 
@@ -83,4 +84,15 @@ TEST(PyInterpreter, FinalizeResetsState) {
 
     interp.Finalize();
     EXPECT_FALSE(interp.IsInitialized());
+}
+
+TEST(PyInterpreter, FinalizeInvalidatesPythonBackend) {
+    PyInterpreter& interp = PyInterpreter::Instance();
+    ASSERT_TRUE(interp.Initialize());
+
+    cplus_alg::python::python_backend backend;
+    EXPECT_TRUE(backend.available());
+
+    interp.Finalize();
+    EXPECT_FALSE(backend.available());
 }

@@ -48,7 +48,15 @@ private:
     python_runtime() = default;
 
     void ensure_initialized() {
-        if (initialized_) return;
+        if (initialized_) {
+            if (!PyInterpreter::Instance().IsInitialized()) {
+                // 解释器被外部 Finalize，重置自身状态以便后续重新初始化
+                registry_ = py::object();
+                initialized_ = false;
+            } else {
+                return;
+            }
+        }
 
         CPLUS_ALG_LOG_DEBUG("initializing embedded python interpreter");
         auto& interp = PyInterpreter::Instance();
