@@ -14,15 +14,15 @@ namespace cplus_alg {
 
 shm_buffer::shm_buffer(const std::string& name, std::size_t size)
     : name_(name), size_(size) {
-    cplus_alg::default_logger()->debug("creating shared memory: name={}, size={}", name_, size_);
+    CPLUS_ALG_LOG_DEBUG("creating shared memory: name={}, size={}", name_, size_);
     int fd = shm_open(name_.c_str(), O_CREAT | O_RDWR, 0666);
     if (fd < 0) {
-        cplus_alg::default_logger()->error("shm_open failed for {}: {}", name_, std::strerror(errno));
+        CPLUS_ALG_LOG_ERROR("shm_open failed for {}: {}", name_, std::strerror(errno));
         throw std::runtime_error(std::string("shm_open failed: ") + std::strerror(errno));
     }
 
     if (ftruncate(fd, static_cast<off_t>(size_)) < 0) {
-        cplus_alg::default_logger()->error("ftruncate failed for {}: {}", name_, std::strerror(errno));
+        CPLUS_ALG_LOG_ERROR("ftruncate failed for {}: {}", name_, std::strerror(errno));
         ::close(fd);
         shm_unlink(name_.c_str());
         throw std::runtime_error(std::string("ftruncate failed: ") + std::strerror(errno));
@@ -33,14 +33,14 @@ shm_buffer::shm_buffer(const std::string& name, std::size_t size)
 
     if (addr_ == MAP_FAILED) {
         addr_ = nullptr;
-        cplus_alg::default_logger()->error("mmap failed for {}: {}", name_, std::strerror(errno));
+        CPLUS_ALG_LOG_ERROR("mmap failed for {}: {}", name_, std::strerror(errno));
         shm_unlink(name_.c_str());
         throw std::runtime_error(std::string("mmap failed: ") + std::strerror(errno));
     }
 }
 
 shm_buffer::~shm_buffer() noexcept {
-    cplus_alg::default_logger()->debug("releasing shared memory: {}", name_);
+    CPLUS_ALG_LOG_DEBUG("releasing shared memory: {}", name_);
     release();
 }
 

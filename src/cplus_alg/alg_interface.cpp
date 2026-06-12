@@ -41,16 +41,16 @@ private:
     void ensure_initialized() {
         if (initialized_) return;
 
-        cplus_alg::default_logger()->debug("initializing embedded python interpreter");
+        CPLUS_ALG_LOG_DEBUG("initializing embedded python interpreter");
         guard_ = std::make_unique<py::scoped_interpreter>();
         try {
             add_alg_path();
             registry_ = py::module_::import("alg.core.registry");
             initialized_ = true;
-            cplus_alg::default_logger()->debug("python interpreter initialized, alg.core.registry loaded");
+            CPLUS_ALG_LOG_DEBUG("python interpreter initialized, alg.core.registry loaded");
         } catch (...) {
             // 导入失败时释放解释器，避免后续调用触发 "interpreter already running"
-            cplus_alg::default_logger()->error("failed to initialize python runtime, releasing interpreter");
+            CPLUS_ALG_LOG_ERROR("failed to initialize python runtime, releasing interpreter");
             guard_.reset();
             registry_ = py::object();
             throw;
@@ -91,14 +91,14 @@ private:
 
         for (const auto& p : candidates) {
             if (std::filesystem::exists(p / "alg" / "__init__.py")) {
-                cplus_alg::default_logger()->debug("adding alg parent directory to sys.path: {}", p.string());
+                CPLUS_ALG_LOG_DEBUG("adding alg parent directory to sys.path: {}", p.string());
                 sys.attr("path").attr("append")(p.string());
                 return;
             }
         }
 
         // 兜底：把当前工作目录加入，alg 包应在当前目录下
-        cplus_alg::default_logger()->warn("alg package not found in candidates, falling back to current directory");
+        CPLUS_ALG_LOG_WARN("alg package not found in candidates, falling back to current directory");
         sys.attr("path").attr("append")(std::filesystem::current_path().string());
     }
 
@@ -287,7 +287,7 @@ nlohmann::json do_call(
         auto& rt = python_runtime::instance();
         py::object registry = rt.registry();  // 先初始化解释器
 
-        cplus_alg::default_logger()->debug("dispatching call to module: {}", module_name);
+        CPLUS_ALG_LOG_DEBUG("dispatching call to module: {}", module_name);
 
         py::object py_input;
         if (input.has_value()) {
@@ -310,17 +310,17 @@ nlohmann::json do_call(
         py::object result = registry.attr("dispatch")(
             module_name, py_input, py_params);
 
-        cplus_alg::default_logger()->debug("module {} returned successfully", module_name);
+        CPLUS_ALG_LOG_DEBUG("module {} returned successfully", module_name);
         return py_to_json(result);
     } catch (const py::error_already_set& e) {
-        cplus_alg::default_logger()->error("python exception in module {}: {}", module_name, e.what());
+        CPLUS_ALG_LOG_ERROR("python exception in module {}: {}", module_name, e.what());
         nlohmann::json err;
         err["success"] = false;
         err["error"] = e.what();
         err["error_type"] = "PythonException";
         return err;
     } catch (const std::exception& e) {
-        cplus_alg::default_logger()->error("c++ exception in module {}: {}", module_name, e.what());
+        CPLUS_ALG_LOG_ERROR("c++ exception in module {}: {}", module_name, e.what());
         nlohmann::json err;
         err["success"] = false;
         err["error"] = e.what();

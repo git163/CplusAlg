@@ -1,6 +1,9 @@
 #ifndef CPLUS_ALG_LOGGER_H
 #define CPLUS_ALG_LOGGER_H
 
+// 启用 debug 级别宏，确保 SPDLOG_LOGGER_DEBUG 生效
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -15,6 +18,7 @@ namespace cplus_alg {
 // 返回库内默认 logger，首次调用时创建。
 // 日志同时输出到 stderr 和 log/cplus_alg.log 文件，级别为 debug。
 // 文件按 5MB 滚动，最多保留 3 个历史文件。
+// 日志格式包含：时间、logger 名、线程 id、源文件名、行号、函数名、日志级别、消息。
 inline std::shared_ptr<spdlog::logger> default_logger() {
     static auto logger = [] {
         auto log_dir = std::filesystem::current_path() / "log";
@@ -31,11 +35,18 @@ inline std::shared_ptr<spdlog::logger> default_logger() {
         std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
         auto log = std::make_shared<spdlog::logger>("cplus_alg", sinks.begin(), sinks.end());
         log->set_level(spdlog::level::debug);
+        log->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [tid:%t] [%s:%#] [%!] [%l] %v");
         return log;
     }();
     return logger;
 }
 
 } // namespace cplus_alg
+
+// 便捷宏，自动捕获调用处的文件名、函数名和行号
+#define CPLUS_ALG_LOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(cplus_alg::default_logger(), __VA_ARGS__)
+#define CPLUS_ALG_LOG_INFO(...)  SPDLOG_LOGGER_INFO(cplus_alg::default_logger(), __VA_ARGS__)
+#define CPLUS_ALG_LOG_WARN(...)  SPDLOG_LOGGER_WARN(cplus_alg::default_logger(), __VA_ARGS__)
+#define CPLUS_ALG_LOG_ERROR(...) SPDLOG_LOGGER_ERROR(cplus_alg::default_logger(), __VA_ARGS__)
 
 #endif // CPLUS_ALG_LOGGER_H

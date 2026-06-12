@@ -22,16 +22,16 @@ int main(int /*argc*/, char* /*argv*/[]) {
         auto result = alg::call("template_match", alg::from_cv_mat(image), params);
 
         if (result["success"]) {
-            alg::default_logger()->info("template match result: x={}, y={}, score={}",
+            CPLUS_ALG_LOG_INFO("template match result: x={}, y={}, score={}",
                 result["data"]["x"].get<int>(),
                 result["data"]["y"].get<int>(),
                 result["data"]["score"].get<double>());
         } else {
-            alg::default_logger()->error("template match failed: {}", std::string(result["error"]));
+            CPLUS_ALG_LOG_ERROR("template match failed: {}", std::string(result["error"]));
             return 1;
         }
     } catch (const std::exception& e) {
-        alg::default_logger()->error("exception: {}", e.what());
+        CPLUS_ALG_LOG_ERROR("exception: {}", e.what());
         return 1;
     }
 
