@@ -456,7 +456,7 @@ def dispatch(module_name: str, input_data, params: dict) -> dict:
 - Python 开发库
 - pybind11（已集成到 `third_party/`）
 - nlohmann/json（已集成到 `third_party/`）
-- OpenCV C++（用于 `cv::Mat` 适配器，可选）
+- OpenCV C++（`cv::Mat` 适配器必需）
 
 ### 11.2 Python 依赖
 

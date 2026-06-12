@@ -28,13 +28,9 @@ endif()
 # nlohmann/json：单头文件库，直接加 include 路径
 set(NLOHMANN_JSON_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/nlohmann_json)
 
-# OpenCV：cv::Mat 适配器需要，未找到时跳过
-find_package(OpenCV QUIET)
-if(OpenCV_FOUND)
-    message(STATUS "找到 OpenCV ${OpenCV_VERSION}")
-else()
-    message(WARNING "未找到 OpenCV，cv::Mat 适配器将被跳过")
-endif()
+# OpenCV：cv::Mat 适配器必需
+find_package(OpenCV REQUIRED)
+message(STATUS "找到 OpenCV ${OpenCV_VERSION}")
 
 # 源码与头文件
 # 注意：file(GLOB_RECURSE) 是 CMake 反模式——CMake 不会主动感知新增的 .cpp。
@@ -54,12 +50,9 @@ if(TARGET pybind11::embed)
     target_link_libraries(cplus_alg_lib PUBLIC pybind11::embed)
 endif()
 
-# 若 OpenCV 可用，链接并启用适配器
-if(OpenCV_FOUND)
-    target_link_libraries(cplus_alg_lib PUBLIC ${OpenCV_LIBS})
-    target_include_directories(cplus_alg_lib PUBLIC ${OpenCV_INCLUDE_DIRS})
-    target_compile_definitions(cplus_alg_lib PUBLIC CPLUS_ALG_HAS_OPENCV=1)
-endif()
+# 链接 OpenCV
+target_link_libraries(cplus_alg_lib PUBLIC ${OpenCV_LIBS})
+target_include_directories(cplus_alg_lib PUBLIC ${OpenCV_INCLUDE_DIRS})
 
 # 主目标
 file(GLOB_RECURSE MAIN_SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/*.cc")

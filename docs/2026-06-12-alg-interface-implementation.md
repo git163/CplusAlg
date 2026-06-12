@@ -77,7 +77,7 @@
 
 | 风险 | 对策 |
 |---|---|
-| OpenCV 未安装导致构建失败 | CMake 中 OpenCV 设为可选，未找到时跳过 cv::Mat 适配器 |
+| OpenCV 未安装导致构建失败 | CMake 中 OpenCV 设为 REQUIRED，未安装时直接配置失败 |
 | `posix_ipc` 未安装 | Python 测试跳过，文档中说明依赖 |
 | 共享内存权限不足 | 使用 `/dev/shm/` 默认路径，测试使用当前用户权限 |
 | GIL / 多线程问题 | pilot 阶段不引入多线程 |

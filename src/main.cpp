@@ -1,17 +1,13 @@
 #include "cplus_alg/alg_interface.h"
+#include "cplus_alg/data_adapters/cv_mat_adapter.h"
 
 #include <iostream>
-
-#ifdef CPLUS_ALG_HAS_OPENCV
-#include "cplus_alg/data_adapters/cv_mat_adapter.h"
 #include <opencv2/opencv.hpp>
-#endif
 
 namespace alg = cplus_alg;
 
 int main(int /*argc*/, char* /*argv*/[]) {
     try {
-#ifdef CPLUS_ALG_HAS_OPENCV
         // 构造合成图像：100x100 灰度图，在 (20, 30) 处放一个 10x10 的白色方块
         cv::Mat image(100, 100, CV_8UC1, cv::Scalar(0));
         cv::rectangle(image, cv::Point(20, 30), cv::Point(29, 39), cv::Scalar(255), cv::FILLED);
@@ -33,10 +29,6 @@ int main(int /*argc*/, char* /*argv*/[]) {
             std::cerr << "调用失败: " << result["error"] << std::endl;
             return 1;
         }
-#else
-        std::cerr << "当前构建未启用 OpenCV，无法运行模板匹配示例" << std::endl;
-        return 1;
-#endif
     } catch (const std::exception& e) {
         std::cerr << "异常: " << e.what() << std::endl;
         return 1;
