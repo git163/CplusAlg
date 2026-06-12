@@ -7,6 +7,24 @@
 
 namespace py = pybind11;
 
+namespace {
+
+bool path_exists_in_list(const py::list& path_list, const std::string& path) {
+    for (const auto& item : path_list) {
+        try {
+            std::string p = item.cast<std::string>();
+            if (p == path) {
+                return true;
+            }
+        } catch (...) {
+            continue;
+        }
+    }
+    return false;
+}
+
+} // namespace
+
 PyInterpreter& PyInterpreter::Instance() {
     static PyInterpreter s_instance;
     return s_instance;
@@ -22,7 +40,7 @@ bool PyInterpreter::Initialize(const std::vector<std::string>& vecExtraPaths) {
 
     if (m_bInitialized.load()) {
         // 即使已初始化，也应追加新传入的额外路径，避免幂等调用丢失配置
-        SetupSysPath(vecExtraPaths);
+        SetupSysPath(vecExtraPaths, false);
         spdlog::warn("Python interpreter already initialized, applying extra paths only");
         return true;
     }
@@ -34,7 +52,7 @@ bool PyInterpreter::Initialize(const std::vector<std::string>& vecExtraPaths) {
             py::gil_scoped_acquire gil;
             (void)py::detail::get_internals();
         }
-        SetupSysPath(vecExtraPaths);
+        SetupSysPath(vecExtraPaths, true);
         m_bInitialized.store(true);
         spdlog::info("Python interpreter initialized successfully");
         return true;
@@ -65,35 +83,45 @@ void PyInterpreter::Finalize() {
     }
 }
 
-void PyInterpreter::SetupSysPath(const std::vector<std::string>& vecExtraPaths) {
+void PyInterpreter::SetupSysPath(const std::vector<std::string>& vecExtraPaths,
+                                 bool b_append_default) {
     try {
         py::module_ sys = py::module_::import("sys");
         py::list pathList = sys.attr("path");
 
-        // 基于可执行文件路径推导 python 目录，避免依赖当前工作目录
-        std::filesystem::path default_path = "../python";
-        try {
-            py::list argv = sys.attr("argv").cast<py::list>();
-            if (argv.size() > 0) {
-                std::string argv0 = argv[0].cast<std::string>();
-                std::filesystem::path exe_path(argv0);
-                if (!exe_path.empty()) {
-                    std::filesystem::path exe_dir = exe_path.parent_path();
-                    std::filesystem::path project_dir = exe_dir.parent_path();
-                    default_path = project_dir / "python";
+        if (b_append_default) {
+            // 基于可执行文件路径推导 python 目录，避免依赖当前工作目录
+            std::filesystem::path default_path = "../python";
+            try {
+                py::list argv = sys.attr("argv").cast<py::list>();
+                if (argv.size() > 0) {
+                    std::string argv0 = argv[0].cast<std::string>();
+                    std::filesystem::path exe_path(argv0);
+                    if (!exe_path.empty()) {
+                        std::filesystem::path exe_dir = exe_path.parent_path();
+                        std::filesystem::path project_dir = exe_dir.parent_path();
+                        default_path = project_dir / "python";
+                    }
                 }
+            } catch (...) {
+                // 忽略 sys.argv 读取失败，使用默认相对路径
             }
-        } catch (...) {
-            // 忽略 sys.argv 读取失败，使用默认相对路径
+            std::string default_str = default_path.string();
+            if (!path_exists_in_list(pathList, default_str)) {
+                pathList.append(default_str);
+                spdlog::info("Added '{}' to sys.path", default_str);
+            } else {
+                spdlog::debug("Path '{}' already exists in sys.path, skipping", default_str);
+            }
         }
-        pathList.append(default_path.string());
-        spdlog::info("Added '{}' to sys.path", default_path.string());
 
         // 添加用户指定的额外路径
         for (const auto& strPath : vecExtraPaths) {
-            if (!strPath.empty()) {
+            if (!strPath.empty() && !path_exists_in_list(pathList, strPath)) {
                 pathList.append(strPath);
                 spdlog::info("Added '{}' to sys.path", strPath);
+            } else if (!strPath.empty()) {
+                spdlog::debug("Path '{}' already exists in sys.path, skipping", strPath);
             }
         }
     } catch (py::error_already_set& e) {

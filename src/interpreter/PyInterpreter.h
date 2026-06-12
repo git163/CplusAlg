@@ -37,7 +37,8 @@ private:
     PyInterpreter() = default;
     ~PyInterpreter();
 
-    void SetupSysPath(const std::vector<std::string>& vecExtraPaths);
+    void SetupSysPath(const std::vector<std::string>& vecExtraPaths,
+                      bool b_append_default);
 
     std::atomic<bool> m_bInitialized{false};
     std::mutex m_mutex;
