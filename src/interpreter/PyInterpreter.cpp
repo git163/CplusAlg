@@ -36,13 +36,11 @@ PyInterpreter::~PyInterpreter() {
 }
 
 bool PyInterpreter::Initialize(const std::vector<std::string>& vecExtraPaths) {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_mutex);
 
     if (m_bInitialized.load()) {
-        // 幂等路径：m_bInitialized 是 atomic，无需持 m_mutex
-        // 仍需持 GIL，因为 SetupSysPath 通过 Python C API 操作 sys.path
-        // 单例语义下，多线程并发 idempotent Init 不应竞争 m_mutex
-        lock.unlock();
+        // 幂等路径：保持 m_mutex 持有,避免与 Finalize() 竞争,
+        // 也串行化多线程并发 idempotent Init 对 SetupSysPath 的访问
         py::gil_scoped_acquire gil;
         SetupSysPath(vecExtraPaths, false);
         spdlog::warn("Python interpreter already initialized, applying extra paths only");
@@ -51,7 +49,7 @@ bool PyInterpreter::Initialize(const std::vector<std::string>& vecExtraPaths) {
 
     try {
         py::initialize_interpreter();
-        // GIL scope: 仅覆盖 pybind11 预热和 sys.path 设置，函数返回前释放
+        // GIL scope: 仅覆盖 pybind11 预热和 sys.path 设置,函数返回前释放
         py::gil_scoped_acquire gil;
         (void)py::detail::get_internals();
         SetupSysPath(vecExtraPaths, true);
