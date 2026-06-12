@@ -19,16 +19,29 @@ namespace python {
 namespace {
 
 // Python 解释器单例，程序生命周期内保持。
+// 使用堆分配并故意不 delete，避免静态析构阶段 finalize Python 解释器时
+// 与 pybind11 / numpy 的清理逻辑发生竞态或顺序问题，从而引发偶现 SIGTRAP。
 class python_runtime {
 public:
     static python_runtime& instance() {
-        static python_runtime inst;
-        return inst;
+        static python_runtime* inst = new python_runtime();
+        return *inst;
     }
 
     py::object registry() {
         ensure_initialized();
         return registry_;
+    }
+
+    // 显式关闭解释器；外部可在需要干净退出的场景主动调用。
+    void shutdown() {
+        if (!initialized_) {
+            return;
+        }
+        // 退出阶段不要再写日志，spdlog 的 sink 等静态对象可能已处于析构过程中。
+        registry_ = py::object();
+        guard_.reset();
+        initialized_ = false;
     }
 
 private:
