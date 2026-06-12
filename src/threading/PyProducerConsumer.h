@@ -269,7 +269,7 @@ private:
     std::condition_variable m_cvDone;
     ConsumerFunc m_funcConsumer;
     size_t m_nMaxQueueSize;
-    bool m_bStop;
+    std::atomic<bool> m_bStop;
     std::atomic<size_t> m_nPendingTasks;
     std::atomic<size_t> m_nProcessedCount;
     std::atomic<size_t> m_nProducedCount;

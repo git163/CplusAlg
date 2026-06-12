@@ -181,8 +181,7 @@ bool python_backend::available() const {
         if (!interp.IsInitialized()) {
             return false;
         }
-        // 确保 GIL 被持有：registry() 内部访问 Python 对象
-        py::gil_scoped_acquire gil;
+        // registry() 内部已获取 GIL
         auto& rt = python_runtime::instance();
         rt.registry();
         return true;

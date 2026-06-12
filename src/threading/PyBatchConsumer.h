@@ -289,7 +289,7 @@ private:
     std::chrono::milliseconds m_timeout;
     size_t m_nMaxQueueSize;
     std::atomic<bool> m_bStop{false};
-    bool m_bFlushRequested;
+    std::atomic<bool> m_bFlushRequested{false};
     std::atomic<size_t> m_nPendingTasks;
     std::atomic<size_t> m_nProcessedCount;
     std::atomic<size_t> m_nProducedCount;

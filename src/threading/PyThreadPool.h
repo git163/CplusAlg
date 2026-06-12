@@ -137,5 +137,5 @@ private:
     std::condition_variable m_cvProduce;
     std::atomic<size_t> m_nPendingTasks{0};
     size_t m_nMaxQueueSize;
-    bool m_bStop{false};
+    std::atomic<bool> m_bStop{false};
 };
