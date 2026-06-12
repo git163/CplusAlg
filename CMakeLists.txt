@@ -28,6 +28,9 @@ endif()
 # nlohmann/json：单头文件库，直接加 include 路径
 set(NLOHMANN_JSON_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/nlohmann_json)
 
+# spdlog：头文件优先，直接加 include 路径
+set(SPDLOG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
+
 # OpenCV：cv::Mat 适配器必需
 find_package(OpenCV REQUIRED)
 message(STATUS "找到 OpenCV ${OpenCV_VERSION}")
@@ -42,7 +45,7 @@ file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS "src/include/*.h" "src/inclu
 
 # 核心库（供主程序和测试共享）
 add_library(cplus_alg_lib STATIC ${CPLUS_ALG_SOURCES})
-target_include_directories(cplus_alg_lib PUBLIC src src/include ${NLOHMANN_JSON_INCLUDE_DIR})
+target_include_directories(cplus_alg_lib PUBLIC src src/include ${NLOHMANN_JSON_INCLUDE_DIR} ${SPDLOG_INCLUDE_DIR})
 target_compile_definitions(cplus_alg_lib PUBLIC CPLUS_ALG_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 # 若 pybind11 可用，链接 embed 目标以支持内嵌 Python 解释器
