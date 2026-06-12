@@ -43,7 +43,7 @@ public:
     const std::unordered_map<std::string, data_buffer>& buffers() const { return buffers_; }
 
 private:
-    nlohmann::json json_;
+    nlohmann::json json_ = nlohmann::json::object();
     std::unordered_map<std::string, data_buffer> buffers_;
 };
 

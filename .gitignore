@@ -8,6 +8,8 @@ Thumbs.db
 *~
 # 提交 VSCode 共享配置，但忽略用户本地设置
 .vscode/settings.json
+*.pyc
+__pycache__/
 
 # 构建产物
 build/

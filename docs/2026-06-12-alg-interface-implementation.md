@@ -36,35 +36,35 @@
 ## 实施步骤
 
 - [x] 创建实现计划文档
-- [ ] 创建 `alg/` Python 包结构
-  - [ ] `alg/__init__.py`
-  - [ ] `alg/core/__init__.py`
-  - [ ] `alg/template_match.py`
-- [ ] 实现 Python 核心模块
-  - [ ] `alg/core/exception.py`
-  - [ ] `alg/core/registry.py`
-  - [ ] `alg/core/mat_io.py`
-  - [ ] `alg/core/shm_io.py`
-- [ ] 实现 C++ 核心头文件
-  - [ ] `src/include/cplus_alg/data_buffer.h`
-  - [ ] `src/include/cplus_alg/shm_handle.h`
-  - [ ] `src/include/cplus_alg/alg_interface.h`
-  - [ ] `src/include/cplus_alg/data_adapters/cv_mat_adapter.h`
-- [ ] 实现 C++ 源文件
-  - [ ] `src/cplus_alg/shm_buffer.cpp`（RAII 共享内存）
-  - [ ] `src/cplus_alg/alg_interface.cpp`
-  - [ ] `src/cplus_alg/data_adapters/cv_mat_adapter.cpp`
-- [ ] 更新 `src/main.cpp` 为模板匹配示例
-- [ ] 更新 `CMakeLists.txt` 添加新源文件和 OpenCV 检测
-- [ ] 编写测试
-  - [ ] `tests/alg/test_template_match.py`
-  - [ ] `tests/alg/test_shm_io.py`
-  - [ ] `tests/alg/TestAlgInterface.cpp`
-  - [ ] `tests/alg/TestTemplateMatch.cpp`
-- [ ] 构建并验证
-  - [ ] `cmake --build build`
-  - [ ] `ctest --test-dir build --output-on-failure`
-  - [ ] 运行 `build/CplusAlg`
+- [x] 创建 `alg/` Python 包结构
+  - [x] `alg/__init__.py`
+  - [x] `alg/core/__init__.py`
+  - [x] `alg/template_match.py`
+- [x] 实现 Python 核心模块
+  - [x] `alg/core/exception.py`
+  - [x] `alg/core/registry.py`
+  - [x] `alg/core/mat_io.py`
+  - [x] `alg/core/shm_io.py`
+- [x] 实现 C++ 核心头文件
+  - [x] `src/include/cplus_alg/data_buffer.h`
+  - [x] `src/include/cplus_alg/shm_handle.h`
+  - [x] `src/include/cplus_alg/alg_interface.h`
+  - [x] `src/include/cplus_alg/data_adapters/cv_mat_adapter.h`
+- [x] 实现 C++ 源文件
+  - [x] `src/cplus_alg/shm_buffer.cpp`（RAII 共享内存）
+  - [x] `src/cplus_alg/alg_interface.cpp`
+  - [x] `src/cplus_alg/data_adapters/cv_mat_adapter.cpp`
+- [x] 更新 `src/main.cpp` 为模板匹配示例
+- [x] 更新 `CMakeLists.txt` 添加新源文件和 OpenCV 检测
+- [x] 编写测试
+  - [x] `tests/alg/test_template_match.py`
+  - [x] `tests/alg/test_shm_io.py`
+  - [x] `tests/alg/TestAlgInterface.cpp`
+  - [x] `tests/alg/TestTemplateMatch.cpp`
+- [x] 构建并验证
+  - [x] `cmake --build build`
+  - [x] `ctest --test-dir build --output-on-failure`
+  - [x] 运行 `build/CplusAlg`
 
 ## 测试计划
 

@@ -41,9 +41,16 @@ private:
         if (initialized_) return;
 
         guard_ = std::make_unique<py::scoped_interpreter>();
-        add_alg_path();
-        registry_ = py::module_::import("alg.core.registry");
-        initialized_ = true;
+        try {
+            add_alg_path();
+            registry_ = py::module_::import("alg.core.registry");
+            initialized_ = true;
+        } catch (...) {
+            // 导入失败时释放解释器，避免后续调用触发 "interpreter already running"
+            guard_.reset();
+            registry_ = py::object();
+            throw;
+        }
     }
 
     void add_alg_path() {
@@ -66,27 +73,26 @@ private:
             exe_dir = std::filesystem::current_path();
         }
 
-        // 尝试 CMake 编译时传入的源码目录，以及 ../alg（构建目录运行）、
-        // ../../alg（tests 目录运行）或 ./alg
+        // 寻找包含 alg/__init__.py 的目录，把该目录的父目录加入 sys.path。
+        // Python 导入 alg 包时需要的是 alg 的父目录，而不是 alg 本身。
         std::vector<std::filesystem::path> candidates = {
 #ifdef CPLUS_ALG_SOURCE_DIR
-            std::filesystem::path(CPLUS_ALG_SOURCE_DIR) / "alg",
+            std::filesystem::path(CPLUS_ALG_SOURCE_DIR),
 #endif
-            exe_dir / ".." / ".." / "alg",
-            exe_dir / ".." / "alg",
-            exe_dir / "alg",
-            std::filesystem::current_path() / "alg",
+            exe_dir / ".." / "..",
+            exe_dir / "..",
+            exe_dir,
+            std::filesystem::current_path(),
         };
 
         for (const auto& p : candidates) {
-            if (std::filesystem::exists(p / "__init__.py")) {
+            if (std::filesystem::exists(p / "alg" / "__init__.py")) {
                 sys.attr("path").attr("append")(p.string());
-                py::print("sys.path:", sys.attr("path"));
                 return;
             }
         }
 
-        // 兜底：把当前工作目录加入， alg 包应在当前目录下
+        // 兜底：把当前工作目录加入，alg 包应在当前目录下
         sys.attr("path").attr("append")(std::filesystem::current_path().string());
     }
 
@@ -109,6 +115,12 @@ std::string dtype_to_str(int cv_depth) {
 }
 
 py::object buffer_to_numpy(const data_buffer& buf) {
+    // 空数据直接映射为 None，避免 numpy 对空 dtype/shape 抛异常，
+    // 同时让上层 Python 代码自行判断输入是否合法。
+    if (buf.data == nullptr || buf.size_bytes == 0) {
+        return py::none();
+    }
+
     py::module_ np = py::module_::import("numpy");
 
     py::object dtype = np.attr("dtype")(buf.dtype);
