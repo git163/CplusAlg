@@ -76,11 +76,11 @@ void PyInterpreter::Finalize() {
 
     try {
         py::finalize_interpreter();
-        m_bInitialized.store(false);
         spdlog::info("Python interpreter finalized");
     } catch (const std::exception& e) {
         spdlog::error("Error during Python interpreter finalization: {}", e.what());
     }
+    m_bInitialized.store(false);
 }
 
 void PyInterpreter::SetupSysPath(const std::vector<std::string>& vecExtraPaths,
