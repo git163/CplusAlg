@@ -163,19 +163,19 @@ src/
 
 ## 实施步骤
 
-- [ ] 1. 创建 `src/cplus_alg/interpreter/CMakeLists.txt`，将 `src/interpreter/PyInterpreter.cpp` 加入 `CPLUS_ALG_LIB_SOURCES`。
-- [ ] 2. 创建 `src/cplus_alg/threading/CMakeLists.txt`，将 `src/threading/PyThreadPool.cpp` 加入 `CPLUS_ALG_LIB_SOURCES`。
-- [ ] 3. 修改 `src/cplus_alg/CMakeLists.txt`，增加 `add_subdirectory(interpreter)` 和 `add_subdirectory(threading)`。
-- [ ] 4. 重构 `src/interpreter/PyInterpreter.cpp`：删除 `Utils.h`/`FileSystemUtils.h`，改用 `std::filesystem` 实现 `SetupSysPath()`。
-- [ ] 5. 修改 `src/cplus_alg/python/python_backend.cpp`：复用 `PyInterpreter` 初始化解释器，移除 `py::scoped_interpreter` 的局部管理。
-- [ ] 6. 配置 CMake 并编译，确保 `cplus_alg_lib` 与主目标能正常构建。
-- [ ] 7. 新增 `tests/interpreter/TestPyInterpreter.cpp`。
-- [ ] 8. 新增 `tests/threading/TestPyThreadPool.cpp`。
-- [ ] 9. 新增 `tests/threading/TestPyProducerConsumer.cpp`。
-- [ ] 10. 新增 `tests/threading/TestParallelExecutor.cpp`。
-- [ ] 11. 更新 `tests/CMakeLists.txt`：加入新测试文件并设置 `TIMEOUT` 属性。
-- [ ] 12. 运行 `ctest --output-on-failure`，修复失败用例。
-- [ ] 13. 将本计划保存到 `docs/2026-06-12-integrate-interpreter-threading.md`。
+- [x] 1. 创建 `src/cplus_alg/interpreter/CMakeLists.txt`，将 `src/interpreter/PyInterpreter.cpp` 加入 `CPLUS_ALG_LIB_SOURCES`。
+- [x] 2. 创建 `src/cplus_alg/threading/CMakeLists.txt`，将 `src/threading/PyThreadPool.cpp` 加入 `CPLUS_ALG_LIB_SOURCES`。
+- [x] 3. 修改 `src/cplus_alg/CMakeLists.txt`，增加 `add_subdirectory(interpreter)` 和 `add_subdirectory(threading)`。
+- [x] 4. 重构 `src/interpreter/PyInterpreter.cpp`：删除 `Utils.h`/`FileSystemUtils.h`，改用 `std::filesystem` 实现 `SetupSysPath()`。
+- [x] 5. 修改 `src/cplus_alg/python/python_backend.cpp`：复用 `PyInterpreter` 初始化解释器，移除 `py::scoped_interpreter` 的局部管理。
+- [x] 6. 配置 CMake 并编译，确保 `cplus_alg_lib` 与主目标能正常构建。
+- [x] 7. 新增 `tests/interpreter/TestPyInterpreter.cpp`。
+- [x] 8. 新增 `tests/threading/TestPyThreadPool.cpp`。
+- [x] 9. 新增 `tests/threading/TestPyProducerConsumer.cpp`。
+- [x] 10. 新增 `tests/threading/TestParallelExecutor.cpp`。
+- [x] 11. 更新 `tests/CMakeLists.txt`：加入新测试文件并设置 `TIMEOUT` 属性。
+- [x] 12. 运行 `ctest --output-on-failure`，修复失败用例。
+- [x] 13. 将本计划保存到 `docs/2026-06-12-integrate-interpreter-threading.md`。
 
 ## 测试计划
 

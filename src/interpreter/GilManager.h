@@ -25,9 +25,8 @@ private:
 class GilScopedRelease {
 public:
     GilScopedRelease()
-        : m_bReleased(false), m_tstate(nullptr) {
-        m_tstate = PyEval_SaveThread();
-        m_bReleased = true;
+        : m_bReleased(false), m_tstate(PyEval_SaveThread()) {
+        m_bReleased = (m_tstate != nullptr);
     }
 
     ~GilScopedRelease() {
