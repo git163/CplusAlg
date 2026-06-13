@@ -83,7 +83,6 @@ add_executable(threading_perf
 
 target_link_libraries(threading_perf PRIVATE
     cplus_alg_lib
-    spdlog::spdlog
     GTest::gtest
 )
 
@@ -103,12 +102,12 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo 2>&1 | tail -20
 cmake --build build --target threading_perf -j 2>&1 | tail -20
 ```
 
-期望：构建无错误，产物在 `build/src/threading/perf/threading_perf`。
+期望：构建无错误，产物在 `build/src/cplus_alg/threading/threading_perf`（CMake target 输出路径规则：在 target 所在 CMakeLists.txt 目录对应子目录下）。
 
 - [ ] **Step 1.5: 跑一次确认输出**
 
 ```bash
-./build/src/threading/perf/threading_perf
+./build/src/cplus_alg/threading/threading_perf
 ```
 
 期望输出：
@@ -2236,8 +2235,8 @@ cmake --build build --target threading_perf -j 2>&1 | tail -20
 - [ ] **Step 9.3: 跑 help 和完整快速扫描**
 
 ```bash
-./build/src/threading/perf/threading_perf --help
-./build/src/threading/perf/threading_perf --threads 1,2,4 --repeat 1 --quiet
+./build/src/cplus_alg/threading/threading_perf --help
+./build/src/cplus_alg/threading/threading_perf --threads 1,2,4 --repeat 1 --quiet
 ```
 
 期望：`--help` 输出用法；`--threads 1,2,4` 跑完 21 个用例，打印表格和 Summary。
